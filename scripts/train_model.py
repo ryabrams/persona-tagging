@@ -9,25 +9,42 @@ import os
 TRAINING_FILE = "data/training_data.csv"
 MODEL_FILE = "model/persona_classifier.pkl"
 
-# Load training data
-df = pd.read_csv(TRAINING_FILE)
+try:
+    # Ensure training file exists
+    if not os.path.exists(TRAINING_FILE):
+        raise FileNotFoundError(f"Training file not found: {TRAINING_FILE}")
 
-# Ensure data format
-df.dropna(inplace=True)
-X_train, y_train = df['Job title'], df['Persona Segment']
+    # Load training data
+    df = pd.read_csv(TRAINING_FILE)
 
-# Define the model pipeline
-pipeline = Pipeline([
-    ('tfidf', TfidfVectorizer(ngram_range=(1,2), stop_words='english')),
-    ('clf', LogisticRegression(max_iter=1000))
-])
+    # Ensure data format
+    if not {'Job title', 'Persona Segment'}.issubset(df.columns):
+        raise ValueError("Training file must contain 'Job title' and 'Persona Segment' columns.")
 
-# Train the model
-pipeline.fit(X_train, y_train)
+    df.dropna(subset=['Job title', 'Persona Segment'], inplace=True)
 
-# Ensure model directory exists
-os.makedirs("model", exist_ok=True)
+    if df.empty:
+        raise ValueError("Training data is empty after dropping missing values.")
 
-# Save the model
-joblib.dump(pipeline, MODEL_FILE)
-print(f"Model trained and saved at {MODEL_FILE}")
+    X_train, y_train = df['Job title'], df['Persona Segment']
+
+    # Define the model pipeline
+    pipeline = Pipeline([
+        ('tfidf', TfidfVectorizer(ngram_range=(1,2), stop_words='english')),
+        ('clf', LogisticRegression(max_iter=1000, random_state=42))
+    ])
+
+    # Train the model
+    pipeline.fit(X_train, y_train)
+
+    # Ensure model directory exists
+    os.makedirs("model", exist_ok=True)
+
+    # Save the model
+    joblib.dump(pipeline, MODEL_FILE)
+
+    print("✅ The model has been retrained")
+
+except Exception as e:
+    print("❌ There was an error retraining the model.")
+    print(f"Error: {e}")
