@@ -1,0 +1,16 @@
+# Ignore Python cache and compiled files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Ignore model files and logs (optional, user can track manually)
+model/
+logs/
+
+# Ignore CSV outputs (optional, user can remove if needed)
+tagged_personas.csv
+
+# Ignore virtual environment (if created manually)
+venv/
+.env
