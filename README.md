@@ -1,6 +1,6 @@
-# Persona Classification
+# 🔎 Persona Classification
 
-## Overview
+## 📝 Overview
 This repository contains a machine learning system that classifies job titles into predefined Persona Segments. The system is built using Python and `scikit-learn` and is designed to be **simple and easy to use** via command-line execution.
 
 ## Persona Segments (Priority Order)
@@ -16,7 +16,7 @@ If a job title could fall into multiple categories, the highest-priority categor
 
 ---
 
-## Installation
+## 🛠️ Installation
 
 ### **1. Clone the Repository**
 ```sh
@@ -32,7 +32,7 @@ pip install -r requirements.txt
 
 ---
 
-## Usage
+## ♻️ Usage
 
 ### **1. Running Predictions**
 To classify job titles, follow these steps:
@@ -148,7 +148,7 @@ Data Sci,Data Scientist
 
 ---
 
-## Project Structure
+## 🧩 Project Structure
 ```
 /project-root
 │── model/                    # Stores trained model
@@ -164,7 +164,7 @@ Data Sci,Data Scientist
 
 ---
 
-## **Troubleshooting**
+## **😱 Troubleshooting**
 
 | Issue | Cause | Solution |
 |--------|------------|------------|
@@ -175,5 +175,5 @@ Data Sci,Data Scientist
 
 ---
 
-## **License**
+## **🪪 License**
 This project is licensed under a MIT license.
