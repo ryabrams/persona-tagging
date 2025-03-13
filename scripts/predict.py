@@ -2,7 +2,7 @@ import pandas as pd
 import joblib
 import os
 import numpy as np
-from scripts.title_standardizer import standardize_title
+from title_standardizer import standardize_title
 
 # File paths
 MODEL_FILE = "model/persona_classifier.pkl"
