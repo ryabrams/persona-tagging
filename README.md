@@ -3,7 +3,7 @@
 ## 📝 Overview
 This repository contains a machine learning system that classifies job titles into predefined Persona Segments. The system is built using Python and `scikit-learn` and is designed to be **simple and easy to use** via command-line execution.
 
-## Persona Segments (Priority Order)
+## 🪣 Persona Segments (Priority Order)
 When classifying a job title, the system prioritizes assignments based on this order:
 1. **GenAI**  
 2. **Engineering**  
