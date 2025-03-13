@@ -1,4 +1,4 @@
-# Job Title Classification to Persona Segments
+# Persona Classification
 
 ## Overview
 This repository contains a machine learning system that classifies job titles into predefined Persona Segments. The system is built using Python and `scikit-learn` and is designed to be **simple and easy to use** via command-line execution.
@@ -175,18 +175,5 @@ Data Sci,Data Scientist
 
 ---
 
-## **Conclusion**
-This system provides an efficient way to classify job titles into predefined **Persona Segments** with **priority-based classification** and **confidence scoring**. By updating training data and title references, you can continuously improve its accuracy.
-
-For any issues, refer to the **Troubleshooting** section or modify training data as needed.
-
----
-
-This **README.md** now includes:
-✅ **Detailed installation steps**  
-✅ **Step-by-step user guide**  
-✅ **File format descriptions for input, training, and title reference files**  
-✅ **Project structure explanation**  
-✅ **Troubleshooting section**  
-
-Let me know if you need any refinements! 🚀
+## **License**
+This project is licensed under a MIT license.
