@@ -170,8 +170,8 @@ Data Sci,Data Scientist
 |--------|------------|------------|
 | `❌ There was an error retraining the model.` | Training data may be missing or formatted incorrectly. | Ensure `data/training_data.csv` exists and has the correct format. |
 | `❌ There was an error tagging the input file.` | Input file might be missing or malformed. | Check `data/input.csv` for missing columns or bad formatting. |
-| Model outputs incorrect classifications. | Training data may need more examples. | Update `data/training_data.csv` and retrain using `make train`. |
-| Confidence scores are too low. | Model may need better training data. | Add more diverse and representative job titles to `data/training_data.csv`. |
+|  ❌ Model outputs incorrect classifications. | Training data may need more examples. | Update `data/training_data.csv` and retrain using `make train`. |
+|  ❌ Confidence scores are too low. | Model may need better training data. | Add more diverse and representative job titles to `data/training_data.csv`. |
 
 ---
 
