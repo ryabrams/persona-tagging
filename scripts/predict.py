@@ -21,18 +21,18 @@ try:
 
     # Load input data
     if not os.path.exists(INPUT_FILE):
-        raise FileNotFoundError("❌ Input file not found: {INPUT_FILE}")
+        raise FileNotFoundError(f"❌ Input file not found: {INPUT_FILE}")
 
     df = pd.read_csv(INPUT_FILE)
 
     # Ensure necessary columns exist
     if not {'Record ID', 'Job title'}.issubset(df.columns):
-        raise ValueError("Input file must contain 'Record ID' and 'Job title' columns.")
+        raise ValueError("❌ Input file must contain 'Record ID' and 'Job title' columns.")
 
     df.dropna(subset=['Record ID', 'Job title'], inplace=True)
 
     if df.empty:
-        raise ValueError("Input data is empty after dropping missing values.")
+        raise ValueError("❌ Input data is empty after dropping missing values.")
 
     # Standardize job titles
     df['Job title'] = df['Job title'].apply(standardize_title)
