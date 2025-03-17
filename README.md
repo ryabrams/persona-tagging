@@ -43,11 +43,11 @@ Your input file must contain **two columns**:
 | Column Name | Description |
 |-------------|------------|
 | `Record ID` | A unique identifier (e.g., from HubSpot) |
-| `Job title` | The job title to be classified |
+| `Job Title` | The job title to be classified |
 
 Example `data/input.csv`:
 ```csv
-Record ID,Job title
+Record ID,Job Title
 37462838462827,AI Engineer
 82736482736473,Senior Software Developer
 ProductLead123,Product Lead
@@ -65,13 +65,13 @@ The output file will be `tagged_personas.csv`, containing:
 | Column Name | Description |
 |-------------|------------|
 | `Record ID` | Same as input |
-| `Job title` | Same as input |
+| `Job Title` | Same as input |
 | `Persona Segment` | Assigned category |
 | `Confidence Score` | Model confidence |
 
 Example `tagged_personas.csv` output:
 ```csv
-Record ID,Job title,Persona Segment,Confidence Score
+Record ID,Job Title,Persona Segment,Confidence Score
 37462838462827,AI Engineer,GenAI,90
 82736482736473,Senior Software Developer,Engineering,85
 ProductLead123,Product Lead,Product,80
@@ -88,12 +88,12 @@ Your training data must contain **two columns**:
 
 | Column Name | Description |
 |-------------|------------|
-| `Job title` | The job title text |
+| `Job Title` | The job title text |
 | `Persona Segment` | Correct category label |
 
 Example `data/training_data.csv`:
 ```csv
-Job title,Persona Segment
+Job Title,Persona Segment
 Sr. Product Manager,Product
 Lead AI Researcher,GenAI
 VP of Legal,Legal & Compliance
@@ -111,7 +111,7 @@ make train
 #### **Step 3: Confirmation**
 If training succeeds, you will see:
 ```sh
-✅ The model has been retrained
+✅ The model has been retrained.
 ```
 If there's an issue, you will see:
 ```sh

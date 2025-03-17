@@ -15,7 +15,7 @@ priority_order = ["GenAI", "Engineering", "Product", "Trust & Safety", "Legal & 
 try:
     # Load model
     if not os.path.exists(MODEL_FILE):
-        raise FileNotFoundError("❌ Model file not found. Train the model first using `make train`.")
+        raise FileNotFoundError("❌ Model file not found. Train the model first using the `make train` command.")
 
     model = joblib.load(MODEL_FILE)
 
@@ -26,19 +26,19 @@ try:
     df = pd.read_csv(INPUT_FILE)
 
     # Ensure necessary columns exist
-    if not {'Record ID', 'Job title'}.issubset(df.columns):
-        raise ValueError("❌ Input file must contain 'Record ID' and 'Job title' columns.")
+    if not {'Record ID', 'Job Title'}.issubset(df.columns):
+        raise ValueError("❌ Input file must contain both 'Record ID' and 'Job Title' columns.")
 
-    df.dropna(subset=['Record ID', 'Job title'], inplace=True)
+    df.dropna(subset=['Record ID', 'Job Title'], inplace=True)
 
     if df.empty:
         raise ValueError("❌ Input data is empty after dropping missing values.")
 
     # Standardize job titles
-    df['Job title'] = df['Job title'].apply(standardize_title)
+    df['Job Title'] = df['Job Title'].apply(standardize_title)
 
     # Make predictions
-    probabilities = model.predict_proba(df['Job title'])
+    probabilities = model.predict_proba(df['Job Title'])
     predicted_labels = model.classes_[np.argmax(probabilities, axis=1)]
     confidence_scores = np.max(probabilities, axis=1) * 100
 
@@ -79,8 +79,8 @@ try:
     # Save to CSV
     df.to_csv(OUTPUT_FILE, index=False)
 
-    print("✅ The input file has been tagged.")
+    print("✅ Success! The input file data has been categorized.")
 
 except Exception as e:
-    print("❌ There was an error tagging the input file.")
+    print("❌ There was an error categorizing the input file.")
     print(f"Error: {e}")

@@ -18,15 +18,15 @@ try:
     df = pd.read_csv(TRAINING_FILE)
 
     # Ensure data format
-    if not {'Job title', 'Persona Segment'}.issubset(df.columns):
-        raise ValueError("Training file must contain 'Job title' and 'Persona Segment' columns.")
+    if not {'Job Title', 'Persona Segment'}.issubset(df.columns):
+        raise ValueError("Training file must contain 'Job Title' and 'Persona Segment' columns.")
 
-    df.dropna(subset=['Job title', 'Persona Segment'], inplace=True)
+    df.dropna(subset=['Job Title', 'Persona Segment'], inplace=True)
 
     if df.empty:
         raise ValueError("Training data is empty after dropping missing values.")
 
-    X_train, y_train = df['Job title'], df['Persona Segment']
+    X_train, y_train = df['Job Title'], df['Persona Segment']
 
     # Define the model pipeline
     pipeline = Pipeline([
@@ -43,7 +43,7 @@ try:
     # Save the model
     joblib.dump(pipeline, MODEL_FILE)
 
-    print("✅ The model has been retrained")
+    print("✅ The model has been retrained.")
 
 except Exception as e:
     print("❌ There was an error retraining the model.")
