@@ -10,10 +10,19 @@ CFO,Chief Financial Officer
 CPO,Chief Product Officer
 CLO,Chief Legal Officer
 MLops,Machine Learning Operations
+mlops,Machine Learning Operations
+ML Ops,Machine Learning Operations
 ML,Machine Learning
+ml,Machine Learning
+ML Engineer,Machine Learning Engineer
 Ops,Operations
 Sec,Security
+Sec.,Security
 Dev,Developer
+Dev.,Developer
+dev,Developer
+dev.,Developer
+devops,Developer Operations
 DevOps,Developer Operations
 CMO,Chief Marketing Officer
 VP,Vice President
@@ -35,3 +44,20 @@ Sr. PM,Senior Product Manager
 CIO,Chief Information Officer
 CRO,Chief Revenue Officer
 CISO,Chief Information Security Officer
+ai,Artificial Intelligence
+AI Eng,Artificial Intelligence Engineer
+AI Engineer,Artificial Intelligence Engineer
+ai engineer,Artificial Intelligence Engineer
+AI,Artificial Intelligence
+AI Eng.,Artificial Intelligence Engineer
+GenAI,General Artificial Intelligence
+AI Ethics,Artificial Intelligence Ethics
+AI Ethics Researcher,Artificial Intelligence Ethics Researcher
+Responsible AI,Responsible Artificial Intelligence
+AI Policy,Artificial Intelligence Policy
+AI Policy Researcher,Artificial Intelligence Policy Researcher
+AI Policy Analyst,Artificial Intelligence Policy Analyst
+AI Policy Research,Artificial Intelligence Policy Research
+Responsible ai,Responsible Artificial Intelligence
+Responsible AI Researcher,Responsible Artificial Intelligence Researcher
+Responsible AI Research,Responsible Artificial Intelligence Research
