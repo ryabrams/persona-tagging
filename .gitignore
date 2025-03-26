@@ -14,3 +14,6 @@ tagged_personas.csv
 # Ignore virtual environment (if created manually)
 venv/
 .env
+
+# Ignore .DS_Store upload when working on Mac
+.DS_Store
