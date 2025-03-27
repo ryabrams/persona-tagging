@@ -152,7 +152,10 @@ Data Sci,Data Scientist
 ```
 /project-root
 │── model/                    # Stores trained model
-│── data/                      # Contains input.csv, training_data.csv, title_reference.csv
+│── data/
+│   └── input.csv
+│   └── training_data.csv
+│   └── title_reference.csv
 │── scripts/                   # Scripts for training and prediction
 │── logs/                      # Keeps logs of runs
 │── tagged_personas.csv        # The output file
