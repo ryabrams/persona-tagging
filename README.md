@@ -162,10 +162,11 @@ Data Sci,Data Scientist
 │   └── title_standardizer.py
 │── logs/                      # Keeps logs of runs
 │── tagged_personas.csv        # The output file
-│── Makefile                   # Simplifies command execution
-│── requirements.txt            # Dependencies
-│── .gitignore                  # Best practices for version control
-│── README.md                   # Detailed usage guide
+│── Makefile
+│── requirements.txt
+│── .gitignore
+│── README.md
+│── LICENSE
 ```
 
 ---
