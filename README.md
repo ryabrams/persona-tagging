@@ -156,7 +156,10 @@ Data Sci,Data Scientist
 │   └── input.csv
 │   └── training_data.csv
 │   └── title_reference.csv
-│── scripts/                   # Scripts for training and prediction
+│── scripts/
+│   └── predict.py
+│   └── train_model.py
+│   └── title_standardizer.py
 │── logs/                      # Keeps logs of runs
 │── tagged_personas.csv        # The output file
 │── Makefile                   # Simplifies command execution
