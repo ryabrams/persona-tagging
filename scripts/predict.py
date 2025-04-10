@@ -25,20 +25,23 @@ try:
 
     df = pd.read_csv(INPUT_FILE)
 
-    # Ensure necessary columns exist
-    if not {'Record ID', 'Job Title'}.issubset(df.columns):
-        raise ValueError("❌ Input file must contain both 'Record ID' and 'Job Title' columns.")
+    # Standardize column names to lower case for case-insensitivity
+    df.columns = df.columns.str.lower()
 
-    df.dropna(subset=['Record ID', 'Job Title'], inplace=True)
+    # Ensure necessary columns exist
+    if not {'record id', 'job title'}.issubset(df.columns):
+        raise ValueError("❌ Input file must contain both 'Record ID' and 'Job Title' columns (case-insensitive).")
+
+    df.dropna(subset=['record id', 'job title'], inplace=True)
 
     if df.empty:
         raise ValueError("❌ Input data is empty after dropping missing values.")
 
     # Standardize job titles
-    df['Job Title'] = df['Job Title'].apply(standardize_title)
+    df['job title'] = df['job title'].apply(standardize_title)
 
     # Make predictions
-    probabilities = model.predict_proba(df['Job Title'])
+    probabilities = model.predict_proba(df['job title'])
     predicted_labels = model.classes_[np.argmax(probabilities, axis=1)]
     confidence_scores = np.max(probabilities, axis=1) * 100
 
