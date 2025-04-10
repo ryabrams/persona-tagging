@@ -17,16 +17,19 @@ try:
     # Load training data
     df = pd.read_csv(TRAINING_FILE)
 
-    # Ensure data format
-    if not {'Job Title', 'Persona Segment'}.issubset(df.columns):
-        raise ValueError("Training file must contain 'Job Title' and 'Persona Segment' columns.")
+    # Standardize column names to lowercase for case-insensitivity
+    df.columns = df.columns.str.lower()
 
-    df.dropna(subset=['Job Title', 'Persona Segment'], inplace=True)
+    # Ensure necessary columns exist
+    if not {'job title', 'persona segment'}.issubset(df.columns):
+        raise ValueError("Training file must contain 'Job Title' and 'Persona Segment' columns (case-insensitive).")
+
+    df.dropna(subset=['job title', 'persona segment'], inplace=True)
 
     if df.empty:
         raise ValueError("Training data is empty after dropping missing values.")
 
-    X_train, y_train = df['Job Title'], df['Persona Segment']
+    X_train, y_train = df['job title'], df['persona segment']
 
     # Define the model pipeline
     pipeline = Pipeline([
