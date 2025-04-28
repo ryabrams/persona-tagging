@@ -1,9 +1,11 @@
-﻿Reference,Standardization
+Reference,Standardization
 AI Eng.,Artificial Intelligence Engineer
 SWE,Software Engineer
 Cyber Sec. Analyst,Cybersecurity Analyst
 PM,Product Manager
+PMM,Product Marketing Manager
 AI,Artifical Intelligence
+ai,Artificial Intelligence
 CTO,Chief Technology Officer
 CEO,Chief Executive Officer
 CFO,Chief Financial Officer
@@ -26,6 +28,7 @@ devops,Developer Operations
 DevOps,Developer Operations
 CMO,Chief Marketing Officer
 VP,Vice President
+SVP, Senior Vice President
 AVP,Assistant Vice President
 EVP,Executive Vice President
 OSINT,Open Source Intelligence
@@ -34,32 +37,40 @@ Dir.,Director
 CHRO,Chief Human Resources Officer
 QA,Quality Assurance
 COO,Chief Operating Officer
-TS,Trust and Safety
 Sr.,Senior
 TNS,Trust and Safety
 T&S,Trust and Safety
+T and S,Trust and Safety
 Eng.,Engineer
 Intel,Intelligence
+intel,Intelligence
+Intell,Intelligence
+intell,Intelligence
 Sr. PM,Senior Product Manager
 CIO,Chief Information Officer
 CRO,Chief Revenue Officer
 CISO,Chief Information Security Officer
-ai,Artificial Intelligence
 AI Eng,Artificial Intelligence Engineer
 AI Engineer,Artificial Intelligence Engineer
 ai engineer,Artificial Intelligence Engineer
 AI,Artificial Intelligence
 AI Eng.,Artificial Intelligence Engineer
 GenAI,General Artificial Intelligence
+genai,General Artificial Intelligence
 AI Ethics,Artificial Intelligence Ethics
 AI Ethics Researcher,Artificial Intelligence Ethics Researcher
 Responsible AI,Responsible Artificial Intelligence
+AI Security,Artificial Intelligence Security
+ai security,Artificial Intelligence Security
 AI Policy,Artificial Intelligence Policy
 AI Policy Researcher,Artificial Intelligence Policy Researcher
 AI Policy Analyst,Artificial Intelligence Policy Analyst
 AI Policy Research,Artificial Intelligence Policy Research
-Responsible ai,Responsible Artificial Intelligence
+Responsible AI,Responsible Artificial Intelligence
+responsible ai,Responsible Artificial Intelligence
 Responsible AI Researcher,Responsible Artificial Intelligence Researcher
 Responsible AI Research,Responsible Artificial Intelligence Research
 UI Designer,User Interface Designer
+UX Designer,User Experience Designer
+Cyber,Cyber Security
 IT Specialist,Information Technology Specialist
