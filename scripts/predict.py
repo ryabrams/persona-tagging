@@ -79,6 +79,9 @@ try:
     df['Persona Segment'] = adjusted_predictions
     df['Confidence Score'] = confidence_scores.astype(int)
 
+    # Blank out persona segments with confidence score below 70
+    df.loc[df['Confidence Score'] < 70, 'Persona Segment'] = ""
+
     # Save to CSV
     df.to_csv(OUTPUT_FILE, index=False)
 
