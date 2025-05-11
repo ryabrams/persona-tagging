@@ -10,7 +10,7 @@ INPUT_FILE = "data/input.csv"
 OUTPUT_FILE = "tagged_personas.csv"
 
 # Define Persona Segment Priority Order
-priority_order = ["GenAI", "Engineering", "Product", "Trust & Safety", "Legal & Compliance", "Executive"]
+priority_order = ["GenAI", "Engineering", "Product", "Cyber Security", "Trust & Safety", "Legal & Compliance", "Executive"]
 
 try:
     # Load model
@@ -78,9 +78,6 @@ try:
     # Add results to DataFrame
     df['Persona Segment'] = adjusted_predictions
     df['Confidence Score'] = confidence_scores.astype(int)
-
-    # Blank out persona segments with confidence score below 70
-    df.loc[df['Confidence Score'] < 70, 'Persona Segment'] = ""
 
     # Save to CSV
     df.to_csv(OUTPUT_FILE, index=False)
