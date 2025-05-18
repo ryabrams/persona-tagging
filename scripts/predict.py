@@ -128,7 +128,7 @@ try:
     df_unmatched = df.copy()  # contains only rows not assigned via keywords
     df_unmatched['Persona Segment'] = adjusted_predictions
     df_unmatched['Confidence Score'] = confidence_scores.astype(int)
-    df_unmatched.loc[df_unmatched['Confidence Score'] < 60, 'Persona Segment'] = ""
+    df_unmatched.loc[df_unmatched['Confidence Score'] < 50, 'Persona Segment'] = ""
     if 'df_matched' in locals():
         df = pd.concat([df_matched, df_unmatched], ignore_index=True)
     else:
@@ -137,7 +137,7 @@ try:
     # Log basic metrics
     n_keyword_matched = df_matched.shape[0] if 'df_matched' in locals() else 0
     n_model_predicted = df_unmatched.shape[0]
-    n_low_confidence = (df_unmatched['Confidence Score'] < 60).sum()
+    n_low_confidence = (df_unmatched['Confidence Score'] < 50).sum()
     logger.info(f"{n_keyword_matched} rows keyword-matched, {n_model_predicted} rows model-predicted, {n_low_confidence} rows low-confidence")
 
     # Save to CSV
