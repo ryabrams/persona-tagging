@@ -1,13 +1,22 @@
 import pandas as pd
 import joblib
 import os
+import sys
 import numpy as np
+import logging
 from title_standardizer import standardize_title
+
+# Configure logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
 # File paths
 MODEL_FILE = "model/persona_classifier.pkl"
 INPUT_FILE = "data/input.csv"
 OUTPUT_FILE = "tagged_personas.csv"
+
+# Keyword matching rules file
+KEYWORD_FILE = "data/keyword_matching.csv"
 
 # Define Persona Segment Priority Order
 priority_order = ["GenAI", "Engineering", "Product", "Cyber Security", "Trust & Safety", "Legal & Compliance", "Executive"]
@@ -36,6 +45,45 @@ try:
 
     if df.empty:
         raise ValueError("❌ Input data is empty after dropping missing values.")
+
+    # Keyword-based Persona Segment assignment
+    if os.path.exists(KEYWORD_FILE):
+        keyword_df = pd.read_csv(KEYWORD_FILE)
+        # Allow optional exclusion keyword for combined include/exclude rules
+        if 'Exclude Keyword' not in keyword_df.columns:
+            keyword_df['Exclude Keyword'] = ""
+        # Prepare columns for keyword matches
+        df['Persona Segment'] = ""
+        df['Confidence Score'] = 0
+        # Apply rules in order listed
+        for _, rule in keyword_df.iterrows():
+            include_kw = str(rule['Keyword']).strip()
+            exclude_kw = str(rule.get('Exclude Keyword', "")).strip()
+            rule_type = str(rule['Rule']).lower()
+            segment = str(rule['Persona Segment'])
+            if rule_type == 'contains':
+                mask = df['job title'].astype(str).str.lower().str.contains(include_kw.lower(), na=False)
+            elif rule_type == 'equals':
+                mask = df['job title'].astype(str).str.lower() == include_kw.lower()
+            else:
+                continue
+            # Apply exclusion if specified
+            if exclude_kw:
+                mask &= ~df['job title'].astype(str).str.lower().str.contains(exclude_kw.lower(), na=False)
+            df.loc[mask & (df['Persona Segment'] == ""), 'Persona Segment'] = segment
+            df.loc[mask & (df['Confidence Score'] == 0), 'Confidence Score'] = 100
+        # Separate out keyword-assigned rows
+        df_matched = df[df['Persona Segment'] != ""].copy()
+        df = df[df['Persona Segment'] == ""].copy()
+        # If all entries were keyword-assigned, save and exit early
+        if df.empty:
+            df_matched.to_csv(OUTPUT_FILE, index=False)
+            logger.info("All entries were categorized by keywords.")
+            sys.exit(0)
+    else:
+        # No keyword file: prepare empty columns for later prediction
+        df['Persona Segment'] = ""
+        df['Confidence Score'] = 0
 
     # Standardize job titles
     df['job title'] = df['job title'].apply(standardize_title)
@@ -75,17 +123,28 @@ try:
     # Apply priority enforcement
     adjusted_predictions = enforce_priority(predicted_labels, probabilities)
 
-    # Add results to DataFrame
-    df['Persona Segment'] = adjusted_predictions
-    df['Confidence Score'] = confidence_scores.astype(int)
-    # Clear persona segment if confidence is below 60
-    df.loc[df['Confidence Score'] < 60, 'Persona Segment'] = ""
+    # Combine keyword-assigned entries with model predictions
+    # Use adjusted_predictions and confidence_scores for the unmatched subset
+    df_unmatched = df.copy()  # contains only rows not assigned via keywords
+    df_unmatched['Persona Segment'] = adjusted_predictions
+    df_unmatched['Confidence Score'] = confidence_scores.astype(int)
+    df_unmatched.loc[df_unmatched['Confidence Score'] < 60, 'Persona Segment'] = ""
+    if 'df_matched' in locals():
+        df = pd.concat([df_matched, df_unmatched], ignore_index=True)
+    else:
+        df = df_unmatched
+
+    # Log basic metrics
+    n_keyword_matched = df_matched.shape[0] if 'df_matched' in locals() else 0
+    n_model_predicted = df_unmatched.shape[0]
+    n_low_confidence = (df_unmatched['Confidence Score'] < 60).sum()
+    logger.info(f"{n_keyword_matched} rows keyword-matched, {n_model_predicted} rows model-predicted, {n_low_confidence} rows low-confidence")
 
     # Save to CSV
     df.to_csv(OUTPUT_FILE, index=False)
 
-    print("✅ Success! The input file data has been categorized.")
+    logger.info("The input file data has been categorized.")
 
 except Exception as e:
-    print("❌ There was an error categorizing the input file.")
-    print(f"Error: {e}")
+    logger.error("There was an error categorizing the input file.")
+    logger.error(f"Error: {e}")

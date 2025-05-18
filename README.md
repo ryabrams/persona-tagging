@@ -148,6 +148,46 @@ Data Sci,Data Scientist
 
 ---
 
+## 🛠️ Configuration
+
+### Priority Order
+The system applies model predictions according to the following priority order (first match wins):
+1. GenAI  
+2. Engineering  
+3. Product  
+4. Cyber Security  
+5. Trust & Safety  
+6. Legal & Compliance  
+7. Executive  
+
+### Confidence Threshold
+By default, any model prediction with a confidence score below 60% will be cleared (the title will not be assigned a Persona Segment unless matched by a keyword rule).
+
+### CSV Schemas
+
+#### Input File (`data/input.csv`)
+- `Record ID` (string or numeric): A unique identifier.  
+- `Job Title` (string): The job title to classify.
+
+#### Keyword Matching File (`data/keyword_matching.csv`)
+- `Keyword` (string): The text to match (case-insensitive).  
+- `Rule` (string): Either `contains` or `equals`.  
+- `Persona Segment` (string): The segment to assign when the rule fires.  
+- `Exclude Keyword` (string, optional): If provided, titles matching this text will be excluded from the match.
+
+Example:
+```csv
+Keyword,Rule,Persona Segment,Exclude Keyword
+engineer,contains,Engineering,sales
+ai research,contains,GenAI,
+```
+
+### Running the Script
+Instead of `make`, you can also run directly:
+```sh
+python scripts/predict.py
+```
+
 ## 🧩 Project Structure
 ```
 /project-root
