@@ -4,18 +4,19 @@
 .DEFAULT_GOAL := help
 
 # Phony targets (not actual files)
-.PHONY: help train predict clean all check setup
+.PHONY: help train predict clean all check setup validate
 
 # Help - display available commands
 help:
 	@echo "Persona Classification System - Available Commands:"
 	@echo "=================================================="
-	@echo "  make train   - Train the model using training data"
-	@echo "  make predict - Run predictions on input data"
-	@echo "  make all     - Run training followed by prediction"
-	@echo "  make check   - Check if all required files exist"
-	@echo "  make clean   - Remove generated files"
-	@echo "  make help    - Show this help message"
+	@echo "  make train    - Train the model using training data"
+	@echo "  make predict  - Run predictions on input data"
+	@echo "  make all      - Run training followed by prediction"
+	@echo "  make check    - Check if all required files exist"
+	@echo "  make validate - Validate format of input files"
+	@echo "  make clean    - Remove generated files"
+	@echo "  make help     - Show this help message"
 
 # Train the model
 train: data/training_data.csv scripts/train_model.py
@@ -102,3 +103,19 @@ test: train
 	@cp data/training_data.csv data/input.csv
 	python scripts/predict.py
 	@echo "✅ Test completed - check tagged_personas.csv"
+
+# Validate input files
+validate:
+	@echo "Validating input files..."
+	@if [ -f data/training_data.csv ]; then \
+		python -c "import pandas as pd; df=pd.read_csv('data/training_data.csv'); print(f'Training data: {len(df)} rows, columns: {list(df.columns)}')"; \
+	fi
+	@if [ -f data/input.csv ]; then \
+		python -c "import pandas as pd; df=pd.read_csv('data/input.csv'); print(f'Input data: {len(df)} rows, columns: {list(df.columns)}')"; \
+	fi
+	@if [ -f data/keyword_matching.csv ]; then \
+		python -c "import pandas as pd; df=pd.read_csv('data/keyword_matching.csv'); print(f'Keyword rules: {len(df)} rules')"; \
+	fi
+	@if [ -f data/title_reference.csv ]; then \
+		python -c "import pandas as pd; df=pd.read_csv('data/title_reference.csv'); print(f'Title mappings: {len(df)} mappings')"; \
+	fi
