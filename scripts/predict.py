@@ -4,7 +4,7 @@ import os
 import sys
 import numpy as np
 import logging
-from title_standardizer import standardize_title
+from title_standardizer import standardize_title, get_standardization_stats
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -25,11 +25,24 @@ def apply_keyword_matching(df, keyword_file):
     if not os.path.exists(keyword_file):
         return df, pd.DataFrame()
     
+    # Make a copy to avoid SettingWithCopyWarning
+    df = df.copy()
+    
     keyword_df = pd.read_csv(keyword_file)
     
     # Ensure optional exclusion column exists
     if 'Exclude Keyword' not in keyword_df.columns:
         keyword_df['Exclude Keyword'] = ""
+    
+    # Pre-process keyword rules for efficiency
+    keyword_df['Keyword'] = keyword_df['Keyword'].astype(str).str.strip().str.lower()
+    keyword_df['Exclude Keyword'] = keyword_df['Exclude Keyword'].astype(str).str.strip().str.lower()
+    keyword_df['Rule'] = keyword_df['Rule'].astype(str).str.lower()
+    
+    # Validate persona segments against known values
+    invalid_segments = set(keyword_df['Persona Segment']) - set(PRIORITY_ORDER)
+    if invalid_segments:
+        logger.warning(f"Unknown persona segments in keyword rules: {invalid_segments}")
     
     # Prepare columns for keyword matches
     df['Persona Segment'] = ""
@@ -40,25 +53,26 @@ def apply_keyword_matching(df, keyword_file):
     
     # Apply rules in order listed
     for _, rule in keyword_df.iterrows():
-        include_kw = str(rule['Keyword']).strip().lower()
-        exclude_kw = str(rule.get('Exclude Keyword', "")).strip().lower()
-        rule_type = str(rule['Rule']).lower()
+        include_kw = rule['Keyword']
+        exclude_kw = rule['Exclude Keyword']
+        rule_type = rule['Rule']
         segment = str(rule['Persona Segment'])
         
-        # Skip if invalid rule type
-        if rule_type not in ['contains', 'equals']:
-            logger.warning(f"Skipping invalid rule type: {rule_type}")
+        # Skip if invalid rule type or empty keyword
+        if rule_type not in ['contains', 'equals'] or not include_kw:
+            if include_kw:  # Only warn if keyword exists but rule is invalid
+                logger.warning(f"Skipping invalid rule type: {rule_type}")
             continue
         
         # Create mask based on rule type
         if rule_type == 'contains':
-            mask = job_titles_lower.str.contains(include_kw, na=False)
+            mask = job_titles_lower.str.contains(include_kw, na=False, regex=False)
         else:  # equals
             mask = job_titles_lower == include_kw
         
         # Apply exclusion if specified
         if exclude_kw:
-            mask &= ~job_titles_lower.str.contains(exclude_kw, na=False)
+            mask &= ~job_titles_lower.str.contains(exclude_kw, na=False, regex=False)
         
         # Apply segment only to unassigned rows
         unassigned_mask = df['Persona Segment'] == ""
@@ -156,8 +170,12 @@ def main():
         # Prepare for ML prediction
         logger.info(f"Applying ML model to {n_to_predict} remaining rows.")
         
-        # Standardize job titles for ML model
-        df_unmatched['job title'] = df_unmatched['job title'].apply(standardize_title)
+        # Standardize job titles for ML model only if reference file exists
+        if get_standardization_stats()['loaded']:
+            df_unmatched = df_unmatched.copy()  # Avoid SettingWithCopyWarning
+            df_unmatched['job title'] = df_unmatched['job title'].apply(standardize_title)
+        else:
+            logger.info("No title standardization applied (reference file not found)")
         
         # Make predictions
         probabilities = model.predict_proba(df_unmatched['job title'])
