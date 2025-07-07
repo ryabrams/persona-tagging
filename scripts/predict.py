@@ -150,6 +150,24 @@ def main():
         if df.empty:
             raise ValueError("❌ Input data is empty after dropping missing values.")
         
+        # Validate data types and content
+        df['record id'] = df['record id'].astype(str)
+        df['job title'] = df['job title'].astype(str)
+        
+        # Check for duplicate record IDs
+        duplicate_ids = df[df.duplicated(subset=['record id'], keep=False)]
+        if not duplicate_ids.empty:
+            logger.warning(f"Found {len(duplicate_ids)} rows with duplicate Record IDs")
+            logger.warning(f"Duplicate IDs: {duplicate_ids['record id'].unique()[:5].tolist()}...")
+        
+        # Check for extremely long job titles
+        max_title_length = df['job title'].str.len().max()
+        if max_title_length > 500:
+            logger.warning(f"Found job titles with excessive length (max: {max_title_length} chars)")
+            long_titles = df[df['job title'].str.len() > 500]
+            logger.warning(f"Truncating {len(long_titles)} overly long job titles")
+            df.loc[df['job title'].str.len() > 500, 'job title'] = df.loc[df['job title'].str.len() > 500, 'job title'].str[:500]
+        
         # Apply keyword-based classification
         df_unmatched, df_matched = apply_keyword_matching(df, KEYWORD_FILE)
         
@@ -230,9 +248,11 @@ def main():
         logger.error(str(e))
         sys.exit(1)
     except Exception as e:
-        logger.error("There was an error categorizing the input file.")
+        logger.error("❌ There was an error categorizing the input file.")
         logger.error(f"Error type: {type(e).__name__}")
         logger.error(f"Error details: {e}")
+        import traceback
+        logger.debug(traceback.format_exc())
         sys.exit(1)
 
 
