@@ -229,6 +229,7 @@ make train    # Train the model
 make predict  # Run predictions
 make all      # Run full pipeline (train + predict)
 make check    # Verify system setup
+make validate # Validate format of input files
 make clean    # Remove generated files
 make retrain  # Force model retraining
 make test     # Quick test using training data
@@ -277,9 +278,18 @@ The system provides comprehensive performance metrics during training:
 | `❌ Model file not found` | Model hasn't been trained | Run `make train` first |
 | `❌ Training file not found` | Missing training data | Ensure `data/training_data.csv` exists |
 | `❌ Input file not found` | Missing input data | Create `data/input.csv` with required columns |
+| `Invalid persona segments in training data` | Typo in persona names | Check spelling matches valid personas exactly |
+| `Found X rows with duplicate Record IDs` | Non-unique identifiers | Review and fix duplicate IDs in input file |
 | Low confidence scores | Insufficient training data | Add more diverse examples to training data |
 | Wrong classifications | Model needs retraining | Update training data and run `make retrain` |
 | `High class imbalance detected` | Uneven persona distribution | Add more samples for underrepresented personas |
+
+### **Data Validation**
+Run `make validate` to check your input files for common issues:
+- File existence and readability
+- Column names and counts
+- Number of rows in each file
+- Basic data format validation
 
 ### **Logging**
 The system provides detailed logging during execution:
