@@ -7,6 +7,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.model_selection import train_test_split, cross_val_score
 from sklearn.metrics import classification_report, confusion_matrix
 import os
+import sys
 import logging
 from datetime import datetime
 from title_standardizer import standardize_title, get_standardization_stats
@@ -22,6 +23,9 @@ MODEL_METADATA_FILE = "model/model_metadata.txt"
 
 # Minimum samples per class
 MIN_SAMPLES_PER_CLASS = 5
+
+# Valid persona segments (same as PRIORITY_ORDER in predict.py)
+VALID_PERSONAS = ["GenAI", "Engineering", "Product", "Cyber Security", "Trust & Safety", "Legal & Compliance", "Executive"]
 
 
 def load_and_prepare_data(file_path):
@@ -75,6 +79,14 @@ def perform_data_quality_checks(df):
         df = df.drop_duplicates(subset=['job title', 'persona segment'])
         logger.info(f"Removed duplicates, {len(df)} unique entries remain")
     
+    # Validate persona segments
+    unique_personas = df['persona segment'].unique()
+    invalid_personas = set(unique_personas) - set(VALID_PERSONAS)
+    if invalid_personas:
+        logger.error(f"Invalid persona segments found: {invalid_personas}")
+        logger.error(f"Valid personas are: {VALID_PERSONAS}")
+        raise ValueError(f"Invalid persona segments in training data: {invalid_personas}")
+    
     # Analyze persona distribution
     persona_counts = df['persona segment'].value_counts()
     logger.info("\nPersona Segment Distribution:")
@@ -90,10 +102,11 @@ def perform_data_quality_checks(df):
             logger.warning(f"  {persona}: {count} samples")
     
     # Check class imbalance
-    imbalance_ratio = persona_counts.max() / persona_counts.min()
-    if imbalance_ratio > 10:
-        logger.warning(f"\nHigh class imbalance detected (ratio: {imbalance_ratio:.1f}:1)")
-        logger.warning("Consider using class weights or resampling techniques")
+    if len(persona_counts) > 1:
+        imbalance_ratio = persona_counts.max() / persona_counts.min()
+        if imbalance_ratio > 10:
+            logger.warning(f"\nHigh class imbalance detected (ratio: {imbalance_ratio:.1f}:1)")
+            logger.warning("Consider using class weights or resampling techniques")
     
     # Title diversity check
     unique_titles = df['job title'].nunique()
@@ -217,15 +230,15 @@ def main():
         
     except FileNotFoundError as e:
         logger.error(f"❌ {e}")
-        exit(1)
+        sys.exit(1)
     except ValueError as e:
         logger.error(f"❌ {e}")
-        exit(1)
+        sys.exit(1)
     except Exception as e:
         logger.error("❌ There was an error retraining the model.")
         logger.error(f"Error type: {type(e).__name__}")
         logger.error(f"Error details: {e}")
-        exit(1)
+        sys.exit(1)
 
 
 if __name__ == "__main__":
