@@ -1,17 +1,26 @@
 # Core dependencies
+
 scikit-learn>=1.0.0
 pandas>=1.3.0
 numpy>=1.21.0
 joblib>=1.0.0
 
 # Additional dependencies for improved functionality
+
 # Note: These are part of Python standard library, so no installation needed:
+
 # - logging (standard library)
+
 # - os (standard library)
+
 # - sys (standard library)
+
 # - datetime (standard library)
+
 # - functools (standard library - for lru_cache)
+
 # - difflib (standard library - for fuzzy matching)
 
 # Optional: For better performance and compatibility
+
 scipy>=1.7.0  # Required by scikit-learn for certain operations
