@@ -1,51 +1,82 @@
 # 🔎 Persona Classification
 
 ## 📝 Overview
-This repository contains a machine learning system that classifies job titles into predefined Persona Segments. The system is built using Python and `scikit-learn`.
 
-## 🪣 Persona Segment
+This repository contains a machine learning system that classifies job titles into predefined Persona Segments. The system combines keyword-based rules with a machine learning model built using Python and `scikit-learn`.
+
+## 🪣 Persona Segments
+
 When classifying a job title, the system prioritizes assignments based on this order:
-1. **GenAI**  
-2. **Engineering**  
-3. **Product**  
-4. **Trust & Safety**  
-5. **Legal & Compliance**  
-6. **Executive**  
+
+1. **GenAI**
+1. **Engineering**
+1. **Product**
+1. **Cyber Security**
+1. **Trust & Safety**
+1. **Legal & Compliance**
+1. **Executive**
 
 If a job title could fall into multiple categories, the highest-priority category is selected.
 
----
+-----
 
 ## 🛠️ Installation
 
 ### **1. Clone the Repository**
+
 ```sh
 git clone <repo-url>
 cd <repo-name>
 ```
 
 ### **2. Install Dependencies**
-Ensure you have Python installed (version 3.8 or later). Then, install the required dependencies:
+
+Ensure you have Python installed (version 3.7 or later). Then, install the required dependencies:
+
 ```sh
 pip install -r requirements.txt
 ```
 
----
+### **3. Verify Installation**
+
+Check that all required files and directories are in place:
+
+```sh
+make check
+```
+
+-----
 
 ## ♻️ Usage
 
+### **Quick Start**
+
+```sh
+# Run the complete pipeline (train + predict)
+make all
+
+# Or run steps individually:
+make train    # Train the model
+make predict  # Run predictions
+```
+
 ### **1. Running Predictions**
+
 To classify job titles, follow these steps:
 
 #### **Step 1: Prepare the Input File (`data/input.csv`)**
-Your input file must contain **two columns**:
 
-| Column Name | Description |
-|-------------|------------|
-| `Record ID` | A unique identifier (e.g., from HubSpot) |
-| `Job Title` | The job title to be classified |
+Your input file must contain **two columns** (case-insensitive):
+
+|Column Name|Description                             |
+|-----------|----------------------------------------|
+|`Record ID`|A unique identifier (e.g., from HubSpot)|
+|`Job Title`|The job title to be classified          |
+
+**Important**: Save the file with UTF-8 encoding to support international characters.
 
 Example `data/input.csv`:
+
 ```csv
 Record ID,Job Title
 37462838462827,AI Engineer
@@ -54,22 +85,26 @@ ProductLead123,Product Lead
 ```
 
 #### **Step 2: Run Prediction**
+
 Execute the following command:
+
 ```sh
 make predict
 ```
 
 #### **Step 3: View Results (`tagged_personas.csv`)**
+
 The output file will be `tagged_personas.csv`, containing:
 
-| Column Name | Description |
-|-------------|------------|
-| `Record ID` | Same as input |
-| `Job Title` | Same as input |
-| `Persona Segment` | Assigned category |
-| `Confidence Score` | Model confidence |
+|Column Name       |Description                                   |
+|------------------|----------------------------------------------|
+|`Record ID`       |Same as input                                 |
+|`Job Title`       |Standardized job title (if applicable)        |
+|`Persona Segment` |Assigned category (empty if confidence < 50%) |
+|`Confidence Score`|Model confidence (0-100, rounded to nearest 5)|
 
 Example `tagged_personas.csv` output:
+
 ```csv
 Record ID,Job Title,Persona Segment,Confidence Score
 37462838462827,AI Engineer,GenAI,90
@@ -77,21 +112,28 @@ Record ID,Job Title,Persona Segment,Confidence Score
 ProductLead123,Product Lead,Product,80
 ```
 
----
+-----
 
-### **2. Retraining the Model**
-
-If the training data needs to be updated, you can retrain the model.
+### **2. Training the Model**
 
 #### **Step 1: Prepare Training Data (`data/training_data.csv`)**
-Your training data must contain **two columns**:
 
-| Column Name | Description |
-|-------------|------------|
-| `Job Title` | The job title text |
-| `Persona Segment` | Correct category label |
+Your training data must contain **two columns** (case-insensitive):
+
+|Column Name      |Description           |
+|-----------------|----------------------|
+|`Job Title`      |The job title text    |
+|`Persona Segment`|Correct category label|
+
+**Requirements**:
+
+- Minimum 10 total samples
+- At least 2 different persona segments
+- Save with UTF-8 encoding
+- For best results, include 10+ samples per persona
 
 Example `data/training_data.csv`:
+
 ```csv
 Job Title,Persona Segment
 Sr. Product Manager,Product
@@ -99,128 +141,271 @@ Lead AI Researcher,GenAI
 VP of Legal,Legal & Compliance
 Senior Software Engineer,Engineering
 Trust & Safety Specialist,Trust & Safety
+Security Architect,Cyber Security
 CTO,Executive
 ```
 
 #### **Step 2: Run Training**
+
 Execute the following command:
+
 ```sh
 make train
 ```
 
-#### **Step 3: Confirmation**
-If training succeeds, you will see:
-```sh
-✅ The model has been retrained.
+#### **Step 3: Review Training Output**
+
+The training process now provides detailed metrics:
+
 ```
-If there's an issue, you will see:
-```sh
-❌ There was an error retraining the model.
+=== Data Quality Report ===
+Persona Segment Distribution:
+  Engineering: 523 samples (32.1%)
+  Product: 387 samples (23.8%)
+  GenAI: 201 samples (12.3%)
+  ...
+
+=== Model Evaluation ===
+Classification Report:
+              precision    recall  f1-score   support
+Engineering       0.92      0.89      0.90       105
+Product          0.88      0.91      0.89        78
+...
+
+Cross-validation scores (5-fold):
+  Mean accuracy: 0.876 (+/- 0.042)
+  Test set accuracy: 0.883
+
+✅ Model training completed successfully!
 ```
 
----
+The system also saves metadata to `model/model_metadata.txt` with training details.
 
-### **3. Using Title Standardization (`data/title_reference.csv`)**
+-----
 
-To improve accuracy, you can provide a mapping file to **standardize job titles before classification**.
+### **3. Optional: Keyword-Based Rules (`data/keyword_matching.csv`)**
 
-#### **Step 1: Prepare the Title Reference File (`data/title_reference.csv`)**
-Your title reference file must contain **two columns**:
+For precise control, you can define keyword rules that take priority over ML predictions.
 
-| Column Name | Description |
-|-------------|------------|
-| `Reference` | Shortened or alternative job title |
-| `Standardization` | The corrected full job title |
+#### **File Format**
+
+|Column Name      |Description                              |
+|-----------------|-----------------------------------------|
+|`Keyword`        |Text to match (case-insensitive)         |
+|`Rule`           |Either `contains` or `equals`            |
+|`Persona Segment`|Segment to assign                        |
+|`Exclude Keyword`|Optional: exclude if this text is present|
+
+Example `data/keyword_matching.csv`:
+
+```csv
+Keyword,Rule,Persona Segment,Exclude Keyword
+chief executive,contains,Executive,
+ai,contains,GenAI,
+engineer,contains,Engineering,sales
+product manager,equals,Product,
+```
+
+**Notes**:
+
+- Keyword matches receive 100% confidence and override ML predictions
+- Keywords are matched against original job titles (before any standardization)
+- Invalid rule types are skipped with a warning
+
+-----
+
+### **4. Optional: Title Standardization (`data/title_reference.csv`)**
+
+Standardize job title variations before classification.
+
+#### **File Format**
+
+|Column Name      |Description               |
+|-----------------|--------------------------|
+|`Reference`      |Original/variant job title|
+|`Standardization`|Standardized form         |
 
 Example `data/title_reference.csv`:
+
 ```csv
 Reference,Standardization
 Sr. PM,Senior Product Manager
 ML Eng,Machine Learning Engineer
 VP T&S,Vice President of Trust & Safety
 CEO,Chief Executive Officer
-Data Sci,Data Scientist
+eng,Engineer
 ```
 
-#### **Step 2: Update & Use the File**
-- Place the updated `data/title_reference.csv` in the `data/` folder.
-- The system will automatically apply standardization when running predictions.
+**Note**: Standardization is case-insensitive and applied during both training and prediction.
 
----
+-----
 
 ## 🛠️ Configuration
 
-### Priority Order
-The system applies model predictions according to the following priority order (first match wins):
-1. GenAI  
-2. Engineering  
-3. Product  
-4. Cyber Security  
-5. Trust & Safety  
-6. Legal & Compliance  
-7. Executive  
+### **Classification Process**
 
-### Confidence Threshold
-By default, any model prediction with a confidence score below 60% will be cleared (the title will not be assigned a Persona Segment unless matched by a keyword rule).
+1. **Keyword Matching** (if `keyword_matching.csv` exists)
+- Applied first, receives 100% confidence
+- Case-insensitive matching
+- **Note**: Matches against original job titles (before standardization)
+1. **Title Standardization** (if `title_reference.csv` exists)
+- Applied to remaining titles that didn’t match keywords
+- Case-insensitive lookup
+- Only affects ML classification, not keyword matching
+1. **ML Classification**
+- Uses TF-IDF features with n-grams (1-3)
+- Logistic Regression with balanced class weights
+- Priority enforcement for uncertain predictions
 
-### CSV Schemas
+### **Thresholds and Settings**
 
-#### Input File (`data/input.csv`)
-- `Record ID` (string or numeric): A unique identifier.  
-- `Job Title` (string): The job title to classify.
+- **Confidence Threshold**: 50% (predictions below this are left unassigned)
+- **Priority Enforcement**: Applied when model confidence < 70%
+- **Fuzzy Matching**: Available but disabled by default
+- **Max Title Length**: 500 characters (longer titles are truncated)
+- **Duplicate Record IDs**: By default, keeps first occurrence
+- **Character Encoding**: UTF-8 for all CSV files
 
-#### Keyword Matching File (`data/keyword_matching.csv`)
-- `Keyword` (string): The text to match (case-insensitive).  
-- `Rule` (string): Either `contains` or `equals`.  
-- `Persona Segment` (string): The segment to assign when the rule fires.  
-- `Exclude Keyword` (string, optional): If provided, titles matching this text will be excluded from the match.
+### **Environment Variables**
 
-Example:
-```csv
-Keyword,Rule,Persona Segment,Exclude Keyword
-engineer,contains,Engineering,sales
-ai research,contains,GenAI,
-```
+You can override default settings using environment variables:
 
-### Running the Script
-Instead of `make`, you can also run directly:
 ```sh
-python scripts/predict.py
+# Set confidence threshold to 60%
+export PC_CONFIDENCE_THRESHOLD=60
+
+# Change duplicate handling to keep last occurrence
+export PC_DUPLICATE_HANDLING=keep_last
+
+# Adjust priority threshold
+export PC_PRIORITY_THRESHOLD=0.8
+
+# Change maximum title length
+export PC_MAX_TITLE_LENGTH=300
+
+# Run prediction with custom settings
+make predict
 ```
+
+Available environment variables:
+
+- `PC_CONFIDENCE_THRESHOLD`: Minimum confidence score (default: 50)
+- `PC_DUPLICATE_HANDLING`: How to handle duplicates - `keep_first`, `keep_last`, or `keep_all` (default: keep_first)
+- `PC_PRIORITY_THRESHOLD`: Confidence threshold for priority enforcement (default: 0.7)
+- `PC_SIMILARITY_RANGE`: Range for considering similar probabilities (default: 0.1)
+- `PC_MAX_TITLE_LENGTH`: Maximum job title length (default: 500)
+
+### **Available Commands**
+
+```sh
+make help     # Show all available commands
+make train    # Train the model
+make predict  # Run predictions
+make all      # Run full pipeline (train + predict)
+make check    # Verify system setup
+make validate # Validate format of input files
+make clean    # Remove generated files
+make retrain  # Force model retraining
+make test     # Quick test using training data
+```
+
+-----
 
 ## 🧩 Project Structure
+
 ```
 /project-root
-│── model/                    # Stores trained model
-│── data/
-│   └── input.csv
-│   └── training_data.csv
-│   └── title_reference.csv
-│── scripts/
-│   └── predict.py
-│   └── train_model.py
-│   └── title_standardizer.py
-│── logs/                      # Keeps logs of runs
-│── tagged_personas.csv        # The output file
-│── Makefile
-│── requirements.txt
-│── .gitignore
-│── README.md
-│── LICENSE
+├── model/                    
+│   ├── persona_classifier.pkl      # Trained model (generated)
+│   └── model_metadata.txt         # Training metadata (generated)
+├── data/
+│   ├── input.csv                  # Input file for predictions
+│   ├── training_data.csv          # Training data
+│   ├── keyword_matching.csv       # Optional: keyword rules
+│   └── title_reference.csv        # Optional: title standardization
+├── scripts/
+│   ├── predict.py                 # Prediction script
+│   ├── train_model.py            # Training script
+│   └── title_standardizer.py     # Standardization module
+├── tagged_personas.csv            # Output file (generated)
+├── Makefile                       # Build automation
+├── requirements.txt               # Python dependencies
+├── README.md                      # This file
+└── LICENSE                        # License file
 ```
 
----
+-----
 
-## **😱 Troubleshooting**
+## 📊 Model Performance
 
-| Issue | Cause | Solution |
-|--------|------------|------------|
-| `❌ There was an error retraining the model.` | Training data may be missing or formatted incorrectly. | Ensure `data/training_data.csv` exists and has the correct format. |
-| `❌ There was an error tagging the input file.` | Input file might be missing or malformed. | Check `data/input.csv` for missing columns or bad formatting. |
-|  ❌ Model outputs incorrect classifications. | Training data may need more examples. | Update `data/training_data.csv` and retrain using `make train`. |
-|  ❌ Confidence scores are too low. | Model may need better training data. | Add more diverse and representative job titles to `data/training_data.csv`. |
+The system provides comprehensive performance metrics during training:
 
----
+- **Classification Report**: Precision, recall, and F1-score per persona
+- **Cross-validation**: 5-fold CV with mean accuracy and standard deviation
+- **Test Set Accuracy**: Hold-out test performance
+- **Data Quality Checks**: Class distribution, imbalance warnings, duplicate detection
 
-## **🪪 License**
-This project is licensed under a MIT license.
+-----
+
+## 😱 Troubleshooting
+
+|Issue                                      |Cause                          |Solution                                                        |
+|-------------------------------------------|-------------------------------|----------------------------------------------------------------|
+|`❌ Model file not found`                   |Model hasn’t been trained      |Run `make train` first                                          |
+|`❌ Training file not found`                |Missing training data          |Ensure `data/training_data.csv` exists                          |
+|`❌ Input file not found`                   |Missing input data             |Create `data/input.csv` with required columns                   |
+|`❌ Failed to load model file`              |Corrupted model file           |Delete model file and retrain with `make train`                 |
+|`❌ Insufficient training data`             |Too few training samples       |Need at least 10 samples total                                  |
+|`❌ Training data contains only one persona`|Single class in training       |Add samples from at least one other persona                     |
+|`Invalid persona segments in training data`|Typo in persona names          |Check spelling matches valid personas exactly                   |
+|`Found X rows with duplicate Record IDs`   |Non-unique identifiers         |Review input file; duplicates are handled based on configuration|
+|`Cannot use stratified split`              |Too few samples in some classes|Add more training examples (need 10+ per persona)               |
+|`Skipping cross-validation`                |Very small training set        |Add more training data for reliable validation                  |
+|Low confidence scores                      |Insufficient training data     |Add more diverse examples to training data                      |
+|Wrong classifications                      |Model needs retraining         |Update training data and run `make retrain`                     |
+|`High class imbalance detected`            |Uneven persona distribution    |Add more samples for underrepresented personas                  |
+|Unicode/encoding errors                    |Non-UTF-8 characters in CSV    |Ensure all CSV files are saved with UTF-8 encoding              |
+
+### **Data Validation**
+
+Run `make validate` to check your input files for common issues:
+
+- File existence and readability
+- Column names and counts
+- Number of rows in each file
+- Basic data format validation
+
+### **Logging**
+
+The system provides detailed logging during execution:
+
+- **INFO**: Normal operations and statistics
+- **WARNING**: Potential issues (e.g., missing files, imbalanced data)
+- **ERROR**: Fatal errors that stop execution
+
+-----
+
+## 🚀 Advanced Features
+
+### **Fuzzy Matching** (Experimental)
+
+Enable approximate title matching in `title_standardizer.py`:
+
+```python
+standardized_title = standardize_title(title, use_fuzzy=True, fuzzy_threshold=0.8)
+```
+
+### **Model Metadata**
+
+After training, check `model/model_metadata.txt` for:
+
+- Training date and time
+- Dataset statistics
+- Model parameters
+- Performance metrics
+
+-----
+
+## 🪪 License
+
+This project is licensed under the MIT License.
