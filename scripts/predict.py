@@ -21,6 +21,9 @@ KEYWORD_FILE = "data/keyword_matching.csv"
 # Define Persona Segment Priority Order
 priority_order = ["GenAI", "Engineering", "Product", "Cyber Security", "Trust & Safety", "Legal & Compliance", "Executive"]
 
+# Configuration
+CONFIDENCE_THRESHOLD = 50  # Minimum confidence score for predictions
+
 try:
     # Load model
     if not os.path.exists(MODEL_FILE):
@@ -55,12 +58,24 @@ try:
         # Prepare columns for keyword matches
         df['Persona Segment'] = ""
         df['Confidence Score'] = 0
-        # Apply rules in order listed
-        for _, rule in keyword_df.iterrows():
-            include_kw = str(rule['Keyword']).strip()
-            exclude_kw = str(rule.get('Exclude Keyword', "")).strip()
-            rule_type = str(rule['Rule']).lower()
-            segment = str(rule['Persona Segment'])
+        # Apply rules in order of priority (higher priority personas first)
+        keyword_df_sorted = keyword_df.copy()
+        keyword_df_sorted['Priority'] = keyword_df_sorted['Persona Segment'].map(
+            {persona: i for i, persona in enumerate(priority_order)}
+        )
+        keyword_df_sorted = keyword_df_sorted.sort_values('Priority', na_last=True)
+        
+        for _, rule in keyword_df_sorted.iterrows():
+            include_kw = str(rule['Keyword']) if pd.notna(rule['Keyword']) else ""
+            include_kw = include_kw.strip()
+            exclude_kw = str(rule.get('Exclude Keyword', "")) if pd.notna(rule.get('Exclude Keyword', "")) else ""
+            exclude_kw = exclude_kw.strip()
+            rule_type = str(rule['Rule']).lower() if pd.notna(rule['Rule']) else ""
+            segment = str(rule['Persona Segment']) if pd.notna(rule['Persona Segment']) else ""
+            
+            if not include_kw or not segment:
+                continue
+                
             if rule_type == 'contains':
                 mask = df['job title'].astype(str).str.lower().str.contains(include_kw.lower(), na=False)
             elif rule_type == 'equals':
@@ -70,6 +85,8 @@ try:
             # Apply exclusion if specified
             if exclude_kw:
                 mask &= ~df['job title'].astype(str).str.lower().str.contains(exclude_kw.lower(), na=False)
+            
+            # Only assign to unassigned rows to respect priority
             df.loc[mask & (df['Persona Segment'] == ""), 'Persona Segment'] = segment
             df.loc[mask & (df['Confidence Score'] == 0), 'Confidence Score'] = 100
         # Separate out keyword-assigned rows
@@ -111,12 +128,17 @@ try:
             sorted_labels = model.classes_[sorted_indices]
 
             # Find the highest-priority label based on predefined order
+            best_label = None
             for candidate in sorted_labels:
                 if candidate in priority_order:
-                    adjusted_labels.append(candidate)
+                    best_label = candidate
                     break
-            else:
-                adjusted_labels.append(label)  # Default to model prediction if no match found
+            
+            # Fallback to original prediction if no priority match found
+            if best_label is None:
+                best_label = pred_labels[i]
+            
+            adjusted_labels.append(best_label)
 
         return np.array(adjusted_labels)
 
@@ -128,7 +150,7 @@ try:
     df_unmatched = df.copy()  # contains only rows not assigned via keywords
     df_unmatched['Persona Segment'] = adjusted_predictions
     df_unmatched['Confidence Score'] = confidence_scores.astype(int)
-    df_unmatched.loc[df_unmatched['Confidence Score'] < 50, 'Persona Segment'] = ""
+    df_unmatched.loc[df_unmatched['Confidence Score'] < CONFIDENCE_THRESHOLD, 'Persona Segment'] = ""
     if 'df_matched' in locals():
         df = pd.concat([df_matched, df_unmatched], ignore_index=True)
     else:
@@ -137,7 +159,7 @@ try:
     # Log basic metrics
     n_keyword_matched = df_matched.shape[0] if 'df_matched' in locals() else 0
     n_model_predicted = df_unmatched.shape[0]
-    n_low_confidence = (df_unmatched['Confidence Score'] < 50).sum()
+    n_low_confidence = (df_unmatched['Confidence Score'] < CONFIDENCE_THRESHOLD).sum()
     logger.info(f"{n_keyword_matched} rows keyword-matched, {n_model_predicted} rows model-predicted, {n_low_confidence} rows low-confidence")
 
     # Save to CSV
