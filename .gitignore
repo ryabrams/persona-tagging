@@ -13,6 +13,9 @@ tagged_personas.csv
 
 # Ignore virtual environment (if created manually)
 venv/
+Lib/
+Scripts/
+pyvenv.cfg
 .env
 
 # Ignore .DS_Store upload when working on Mac
