@@ -1,11 +1,10 @@
 import pandas as pd
 import joblib
-import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
 from sklearn.pipeline import Pipeline
 from sklearn.model_selection import train_test_split, cross_val_score
-from sklearn.metrics import classification_report, confusion_matrix
+from sklearn.metrics import classification_report
 import os
 import sys
 import logging
@@ -167,7 +166,7 @@ def train_and_evaluate_model(X_train, y_train, X_test, y_test):
     # Classification report
     logger.info("\nClassification Report:")
     report = classification_report(y_test, y_pred)
-    logger.info("\n" + report)
+    logger.info(f"\n{report}")
     
     # Cross-validation scores
     # Determine number of CV folds based on smallest class size in training set
