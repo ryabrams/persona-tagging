@@ -5,15 +5,8 @@ from functools import lru_cache
 from difflib import get_close_matches
 import threading
 
-# Configure logging
-
 logger = logging.getLogger(__name__)
-
-# File path
-
 REFERENCE_FILE = "data/title_reference.csv"
-
-# Thread-safe globals for reference dictionary
 
 _reference_dict = None
 _reference_loaded = False
