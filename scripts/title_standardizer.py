@@ -68,8 +68,7 @@ def load_reference_dict() -> Dict[str, str]:
                             if ref_str and std_str:
                                 _reference_dict[ref_str] = std_str
                         
-                        if logger.isEnabledFor(logging.INFO):
-                            logger.info(f"Loaded {len(_reference_dict)} title mappings from {REFERENCE_FILE}")
+                        logger.info(f"Loaded {len(_reference_dict)} title mappings from {REFERENCE_FILE}")
                     
                         # Check for duplicate references
                         duplicates = valid_rows[ref_col].str.lower().str.strip().duplicated()
@@ -86,8 +85,7 @@ def load_reference_dict() -> Dict[str, str]:
                 logger.error(f"Unexpected error loading title reference file: {e}. Standardization will be skipped.")
                 
         else:
-            if logger.isEnabledFor(logging.INFO):
-                logger.info(f"Title reference file not found at {REFERENCE_FILE}. Standardization will be skipped.")
+            logger.info(f"Title reference file not found at {REFERENCE_FILE}. Standardization will be skipped.")
 
         _reference_loaded = True
         return _reference_dict
@@ -110,9 +108,8 @@ def _standardize_title_impl(title_lower: str, reference_dict: Dict[str, str],
             )
             if close_matches:
                 matched_key = close_matches[0]
-                if logger.isEnabledFor(logging.DEBUG):
-                    logger.debug(f"Fuzzy match: '{title_lower}' -> '{reference_dict[matched_key]}' "
-                               f"(matched with '{matched_key}')")
+                logger.debug(f"Fuzzy match: '{title_lower}' -> '{reference_dict[matched_key]}' "
+                           f"(matched with '{matched_key}')")
                 return reference_dict[matched_key]
         except Exception as e:
             logger.warning(f"Error in fuzzy matching for '{title_lower}': {e}")
@@ -120,12 +117,21 @@ def _standardize_title_impl(title_lower: str, reference_dict: Dict[str, str],
     return None
 
 @lru_cache(maxsize=500)  # Reduced cache size to prevent memory issues
-def _cached_standardize(title_lower: str) -> Optional[str]:
-    """Cached version for exact matches only."""
-    reference_dict = load_reference_dict()
-    if not reference_dict:
+def _cached_standardize(title_lower: str, dict_id: int) -> Optional[str]:
+    """
+    Cached version for exact matches only.
+
+    Args:
+        title_lower: Lowercase job title to lookup
+        dict_id: ID of the reference dict (for cache invalidation on reload)
+
+    Returns:
+        Standardized title if found, None otherwise
+    """
+    # Access the global reference dict (already loaded and thread-safe)
+    if not _reference_dict:
         return None
-    return reference_dict.get(title_lower)
+    return _reference_dict.get(title_lower)
 
 def standardize_title(title: Any, use_fuzzy: bool = False, fuzzy_threshold: float = 0.8) -> str:
     """
@@ -157,13 +163,15 @@ def standardize_title(title: Any, use_fuzzy: bool = False, fuzzy_threshold: floa
         logger.warning(f"Invalid fuzzy_threshold {fuzzy_threshold}, using default 0.8")
         fuzzy_threshold = 0.8
 
-    if not use_fuzzy:
-        result = _cached_standardize(clean_title)
-        return result if result is not None else title
-
+    # Load reference dict to ensure it's available
     reference_dict = load_reference_dict()
     if not reference_dict:
         return title
+
+    if not use_fuzzy:
+        # Use cached lookup with dict ID for cache invalidation
+        result = _cached_standardize(clean_title, id(reference_dict))
+        return result if result is not None else title
 
     result = _standardize_title_impl(clean_title, reference_dict, use_fuzzy, fuzzy_threshold)
     return result if result is not None else title
@@ -213,14 +221,12 @@ def reload_reference() -> None:
     with _reference_lock:
         _reference_loaded = False
         _cached_standardize.cache_clear()
-        if logger.isEnabledFor(logging.INFO):
-            logger.info("Reference dictionary cache cleared and will be reloaded on next use.")
+        logger.info("Reference dictionary cache cleared and will be reloaded on next use.")
 
 def clear_cache() -> None:
     """Clear the standardization cache to free memory."""
     _cached_standardize.cache_clear()
-    if logger.isEnabledFor(logging.DEBUG):
-        logger.debug("Title standardization cache cleared")
+    logger.debug("Title standardization cache cleared")
 
 def get_cache_info() -> Dict[str, Any]:
     """Get information about the current cache state."""

@@ -223,20 +223,36 @@ def save_model_and_metadata(pipeline, test_accuracy, df, persona_counts):
     
     logger.info(f"Metadata saved to {MODEL_METADATA_FILE}")
 
+def _parse_env_float(var_name: str, default: float) -> float:
+    """Safely parse float environment variable."""
+    try:
+        return float(os.environ.get(var_name, default))
+    except (ValueError, TypeError) as e:
+        logger.error(f"❌ Invalid value for {var_name}: '{os.environ.get(var_name)}'. Must be a number. Using default: {default}")
+        return default
+
+def _parse_env_int(var_name: str, default: int) -> int:
+    """Safely parse integer environment variable."""
+    try:
+        return int(os.environ.get(var_name, default))
+    except (ValueError, TypeError) as e:
+        logger.error(f"❌ Invalid value for {var_name}: '{os.environ.get(var_name)}'. Must be an integer. Using default: {default}")
+        return default
+
 def validate_environment_config():
     """Validate environment configuration variables."""
     config_errors = []
-    
+
     # Validate TEST_SIZE
-    test_size = float(os.environ.get('PC_TEST_SIZE', TEST_SIZE))
+    test_size = _parse_env_float('PC_TEST_SIZE', TEST_SIZE)
     if not 0.1 <= test_size <= 0.5:
         config_errors.append(f"PC_TEST_SIZE must be between 0.1 and 0.5, got {test_size}")
-    
+
     # Validate MAX_FEATURES
-    max_features = int(os.environ.get('PC_MAX_FEATURES', MAX_FEATURES))
+    max_features = _parse_env_int('PC_MAX_FEATURES', MAX_FEATURES)
     if max_features < 100:
         config_errors.append(f"PC_MAX_FEATURES must be at least 100, got {max_features}")
-    
+
     if config_errors:
         for error in config_errors:
             logger.error(f"❌ {error}")

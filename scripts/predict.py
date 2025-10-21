@@ -20,10 +20,26 @@ KEYWORD_FILE = "data/keyword_matching.csv"
 PRIORITY_ORDER = ["GenAI", "Engineering", "Product", "Cyber Security", "Trust & Safety", "Legal & Compliance", "Executive"]
 
 # Configuration constants (can be overridden by environment variables)
-MAX_TITLE_LENGTH = int(os.environ.get('PC_MAX_TITLE_LENGTH', 500))
-CONFIDENCE_THRESHOLD = float(os.environ.get('PC_CONFIDENCE_THRESHOLD', 50))
-PRIORITY_THRESHOLD = float(os.environ.get('PC_PRIORITY_THRESHOLD', 0.7))
-SIMILARITY_RANGE = float(os.environ.get('PC_SIMILARITY_RANGE', 0.1))
+def _parse_env_int(var_name: str, default: int) -> int:
+    """Safely parse integer environment variable."""
+    try:
+        return int(os.environ.get(var_name, default))
+    except (ValueError, TypeError) as e:
+        logger.error(f"❌ Invalid value for {var_name}: '{os.environ.get(var_name)}'. Must be an integer. Using default: {default}")
+        return default
+
+def _parse_env_float(var_name: str, default: float) -> float:
+    """Safely parse float environment variable."""
+    try:
+        return float(os.environ.get(var_name, default))
+    except (ValueError, TypeError) as e:
+        logger.error(f"❌ Invalid value for {var_name}: '{os.environ.get(var_name)}'. Must be a number. Using default: {default}")
+        return default
+
+MAX_TITLE_LENGTH = _parse_env_int('PC_MAX_TITLE_LENGTH', 500)
+CONFIDENCE_THRESHOLD = _parse_env_float('PC_CONFIDENCE_THRESHOLD', 50)
+PRIORITY_THRESHOLD = _parse_env_float('PC_PRIORITY_THRESHOLD', 0.7)
+SIMILARITY_RANGE = _parse_env_float('PC_SIMILARITY_RANGE', 0.1)
 DUPLICATE_HANDLING = os.environ.get('PC_DUPLICATE_HANDLING', 'keep_first')  # 'keep_first', 'keep_last', 'keep_all'
 
 def validate_environment_config():

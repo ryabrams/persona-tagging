@@ -31,7 +31,7 @@ cd <repo-name>
 
 ### **2. Install Dependencies**
 
-Ensure you have Python installed (version 3.7 or later). Then, install the required dependencies:
+Ensure you have Python installed (version 3.7 or later recommended; tested with 3.8-3.11). Then, install the required dependencies:
 
 ```sh
 pip install -r requirements.txt
@@ -101,7 +101,7 @@ The output file will be `tagged_personas.csv`, containing:
 |`Record ID`       |Same as input                                 |
 |`Job Title`       |Standardized job title (if applicable)        |
 |`Persona Segment` |Assigned category (empty if confidence < 50%) |
-|`Confidence Score`|Model confidence (0-100, rounded to nearest 5)|
+|`Confidence Score`|Model confidence (0-100, all scores rounded to nearest 5)|
 
 Example `tagged_personas.csv` output:
 
@@ -244,18 +244,24 @@ eng,Engineer
 
 ### **Classification Process**
 
+The system applies a multi-layered classification approach in the following order:
+
 1. **Keyword Matching** (if `keyword_matching.csv` exists)
-- Applied first, receives 100% confidence
-- Case-insensitive matching
-- **Note**: Matches against original job titles (before standardization)
-1. **Title Standardization** (if `title_reference.csv` exists)
-- Applied to remaining titles that didn’t match keywords
-- Case-insensitive lookup
-- Only affects ML classification, not keyword matching
-1. **ML Classification**
-- Uses TF-IDF features with n-grams (1-3)
-- Logistic Regression with balanced class weights
-- Priority enforcement for uncertain predictions
+   - Applied **first** to original job titles (before any standardization)
+   - Receives 100% confidence and overrides all other methods
+   - Case-insensitive matching
+
+2. **Title Standardization** (if `title_reference.csv` exists)
+   - Applied to titles that **didn't** match keyword rules
+   - Normalizes job title variations before ML classification
+   - Case-insensitive lookup
+
+3. **ML Classification**
+   - Uses TF-IDF features with n-grams (1-3), max 5000 features, min_df=2
+   - English stop words removed automatically
+   - Logistic Regression with max_iter=1000, class_weight='balanced'
+   - Generates probability scores for each persona segment
+   - Priority enforcement applied when model confidence < 70%
 
 ### **Thresholds and Settings**
 
@@ -289,11 +295,16 @@ make predict
 
 Available environment variables:
 
-- `PC_CONFIDENCE_THRESHOLD`: Minimum confidence score (default: 50)
-- `PC_DUPLICATE_HANDLING`: How to handle duplicates - `keep_first`, `keep_last`, or `keep_all` (default: keep_first)
-- `PC_PRIORITY_THRESHOLD`: Confidence threshold for priority enforcement (default: 0.7)
-- `PC_SIMILARITY_RANGE`: Range for considering similar probabilities (default: 0.1)
-- `PC_MAX_TITLE_LENGTH`: Maximum job title length (default: 500)
+- `PC_CONFIDENCE_THRESHOLD`: Minimum confidence score for assignment, 0-100 (default: 50)
+- `PC_DUPLICATE_HANDLING`: How to handle duplicate Record IDs (default: keep_first)
+  - `keep_first`: Keeps first occurrence, removes duplicates
+  - `keep_last`: Keeps last occurrence, removes duplicates
+  - `keep_all`: Keeps all duplicates (may result in multiple rows with same ID)
+- `PC_PRIORITY_THRESHOLD`: Confidence threshold for priority enforcement, 0.0-1.0 (default: 0.7)
+- `PC_SIMILARITY_RANGE`: Range for considering similar probabilities, 0.0-1.0 (default: 0.1)
+- `PC_MAX_TITLE_LENGTH`: Maximum job title length in characters, 10-10000 (default: 500)
+- `PC_TEST_SIZE`: Train/test split ratio, 0.1-0.5 (default: 0.2)
+- `PC_MAX_FEATURES`: TF-IDF maximum features, minimum 100 (default: 5000)
 
 ### **Available Commands**
 
@@ -358,7 +369,7 @@ The system provides comprehensive performance metrics during training:
 |`❌ Insufficient training data`             |Too few training samples       |Need at least 10 samples total                                  |
 |`❌ Training data contains only one persona`|Single class in training       |Add samples from at least one other persona                     |
 |`Invalid persona segments in training data`|Typo in persona names          |Check spelling matches valid personas exactly                   |
-|`Found X rows with duplicate Record IDs`   |Non-unique identifiers         |Review input file; duplicates are handled based on configuration|
+|`Found X rows with duplicate Record IDs`   |Non-unique identifiers         |Review input file; by default keeps first occurrence (configurable via PC_DUPLICATE_HANDLING)|
 |`Cannot use stratified split`              |Too few samples in some classes|Add more training examples (need 10+ per persona)               |
 |`Skipping cross-validation`                |Very small training set        |Add more training data for reliable validation                  |
 |Low confidence scores                      |Insufficient training data     |Add more diverse examples to training data                      |
@@ -392,7 +403,7 @@ The system provides detailed logging during execution:
 Enable approximate title matching in `title_standardizer.py`:
 
 ```python
-standardized_title = standardize_title(title, use_fuzzy=True, fuzzy_threshold=0.8)
+standardized_title = standardize_title(title, fuzzy=True, similarity_threshold=0.8)
 ```
 
 ### **Model Metadata**
