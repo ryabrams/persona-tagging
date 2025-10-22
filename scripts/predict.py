@@ -4,6 +4,7 @@ import os
 import sys
 import numpy as np
 import logging
+from pathlib import Path
 from title_standardizer import standardize_title, is_standardization_available
 
 # Configure logging
@@ -11,10 +12,10 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 logger = logging.getLogger(__name__)
 
 # File paths
-MODEL_FILE = "model/persona_classifier.pkl"
-INPUT_FILE = "data/input.csv"
-OUTPUT_FILE = "tagged_personas.csv"
-KEYWORD_FILE = "data/keyword_matching.csv"
+MODEL_FILE = Path("model") / "persona_classifier.pkl"
+INPUT_FILE = Path("data") / "input.csv"
+OUTPUT_FILE = Path("tagged_personas.csv")
+KEYWORD_FILE = Path("data") / "keyword_matching.csv"
 
 # Define Persona Segment Priority Order
 PRIORITY_ORDER = ["GenAI", "Engineering", "Product", "Cyber Security", "Trust & Safety", "Legal & Compliance", "Executive"]
@@ -74,7 +75,7 @@ def validate_environment_config():
 
 def load_and_validate_input_data():
     """Load and validate input data."""
-    if not os.path.exists(INPUT_FILE):
+    if not INPUT_FILE.exists():
         raise FileNotFoundError(f"❌ Input file not found: {INPUT_FILE}")
 
     df = pd.read_csv(INPUT_FILE, encoding='utf-8')
@@ -133,6 +134,18 @@ def handle_duplicate_records(df):
 
 def validate_and_clean_titles(df):
     """Validate and clean job titles."""
+    # Filter out empty strings and whitespace-only titles
+    initial_count = len(df)
+    empty_mask = df['job title'].str.strip() == ''
+    empty_count = empty_mask.sum()
+
+    if empty_count > 0:
+        logger.warning(f"Removing {empty_count} records with empty or whitespace-only job titles")
+        df = df[~empty_mask].copy()
+
+    if len(df) == 0:
+        raise ValueError("❌ No valid job titles remaining after filtering empty values")
+
     # Check for extremely long job titles
     max_title_length = df['job title'].str.len().max()
     if max_title_length > MAX_TITLE_LENGTH:
@@ -146,11 +159,8 @@ def validate_and_clean_titles(df):
 
 def apply_keyword_matching(df, keyword_file):
     """Apply keyword-based persona assignment rules."""
-    if not os.path.exists(keyword_file):
+    if not keyword_file.exists():
         return df, pd.DataFrame()
-
-    # Make a copy to avoid SettingWithCopyWarning
-    df = df.copy()
 
     keyword_df = pd.read_csv(keyword_file, encoding='utf-8')
 
@@ -230,8 +240,6 @@ def apply_title_standardization(df):
         logger.info("No title standardization applied (reference file not found)")
         return df
 
-    df = df.copy()  # Avoid SettingWithCopyWarning
-    
     # Store original titles for logging
     original_titles = df['job title'].copy()
     
@@ -274,12 +282,10 @@ def make_ml_predictions(df_unmatched, model):
     """Make ML predictions on unmatched data."""
     if df_unmatched.empty:
         return df_unmatched
-    
+
     logger.info(f"Applying ML model to {len(df_unmatched)} remaining rows.")
 
-    # Apply title standardization for ML model
-    df_unmatched = apply_title_standardization(df_unmatched)
-
+    # Note: Title standardization already applied before keyword matching
     # Make predictions
     probabilities = model.predict_proba(df_unmatched['job title'])
     predicted_labels = model.classes_[np.argmax(probabilities, axis=1)]
@@ -342,7 +348,7 @@ def main():
         validate_environment_config()
         
         # Load model
-        if not os.path.exists(MODEL_FILE):
+        if not MODEL_FILE.exists():
             raise FileNotFoundError("❌ Model file not found. Train the model first using the `make train` command.")
 
         try:
@@ -359,6 +365,9 @@ def main():
         
         # Validate and clean titles
         df = validate_and_clean_titles(df)
+
+        # Apply title standardization BEFORE keyword matching (consistent with training)
+        df = apply_title_standardization(df)
 
         # Apply keyword-based classification
         df_unmatched, df_matched = apply_keyword_matching(df, KEYWORD_FILE)

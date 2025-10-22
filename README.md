@@ -209,7 +209,7 @@ product manager,equals,Product,
 **Notes**:
 
 - Keyword matches receive 100% confidence and override ML predictions
-- Keywords are matched against original job titles (before any standardization)
+- Keywords are matched against standardized job titles (after title standardization is applied)
 - Invalid rule types are skipped with a warning
 
 -----
@@ -246,15 +246,15 @@ eng,Engineer
 
 The system applies a multi-layered classification approach in the following order:
 
-1. **Keyword Matching** (if `keyword_matching.csv` exists)
-   - Applied **first** to original job titles (before any standardization)
-   - Receives 100% confidence and overrides all other methods
-   - Case-insensitive matching
-
-2. **Title Standardization** (if `title_reference.csv` exists)
-   - Applied to titles that **didn't** match keyword rules
-   - Normalizes job title variations before ML classification
+1. **Title Standardization** (if `title_reference.csv` exists)
+   - Applied **first** to normalize job title variations
    - Case-insensitive lookup
+   - Consistent with training pipeline to prevent data leakage
+
+2. **Keyword Matching** (if `keyword_matching.csv` exists)
+   - Applied to standardized job titles
+   - Receives 100% confidence and overrides ML predictions
+   - Case-insensitive matching
 
 3. **ML Classification**
    - Uses TF-IDF features with n-grams (1-3), max 5000 features, min_df=2

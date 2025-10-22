@@ -9,6 +9,7 @@ import os
 import sys
 import logging
 from datetime import datetime
+from pathlib import Path
 from title_standardizer import standardize_title, get_standardization_stats
 
 # Configure logging
@@ -16,9 +17,9 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 logger = logging.getLogger(__name__)
 
 # File paths
-TRAINING_FILE = "data/training_data.csv"
-MODEL_FILE = "model/persona_classifier.pkl"
-MODEL_METADATA_FILE = "model/model_metadata.txt"
+TRAINING_FILE = Path("data") / "training_data.csv"
+MODEL_FILE = Path("model") / "persona_classifier.pkl"
+MODEL_METADATA_FILE = Path("model") / "model_metadata.txt"
 
 # Minimum samples per class
 MIN_SAMPLES_PER_CLASS = 5
@@ -80,7 +81,13 @@ def load_and_prepare_data(file_path):
     return df
 
 def perform_data_quality_checks(df):
-    """Perform data quality checks and log statistics."""
+    """Perform data quality checks, log statistics, and remove duplicates.
+
+    Note: This function modifies the dataframe by removing duplicate entries.
+
+    Returns:
+        DataFrame with duplicates removed
+    """
     logger.info("\n=== Data Quality Report ===")
     
     # Check for duplicates
@@ -191,7 +198,7 @@ def train_and_evaluate_model(X_train, y_train, X_test, y_test):
 def save_model_and_metadata(pipeline, test_accuracy, df, persona_counts):
     """Save the trained model and metadata."""
     # Ensure model directory exists
-    os.makedirs("model", exist_ok=True)
+    MODEL_FILE.parent.mkdir(parents=True, exist_ok=True)
     
     # Save the model
     joblib.dump(pipeline, MODEL_FILE)
@@ -264,7 +271,7 @@ def main():
         validate_environment_config()
         
         # Check if training file exists
-        if not os.path.exists(TRAINING_FILE):
+        if not TRAINING_FILE.exists():
             raise FileNotFoundError(f"❌ Training file not found: {TRAINING_FILE}")
         
         # Load and prepare data

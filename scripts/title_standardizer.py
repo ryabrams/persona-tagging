@@ -4,10 +4,11 @@ import logging
 from functools import lru_cache
 from difflib import get_close_matches
 import threading
+from pathlib import Path
 from typing import Optional, Dict, Any
 
 logger = logging.getLogger(__name__)
-REFERENCE_FILE = "data/title_reference.csv"
+REFERENCE_FILE = Path("data") / "title_reference.csv"
 
 # Global variables for thread-safe caching
 _reference_dict = None
@@ -27,7 +28,7 @@ def load_reference_dict() -> Dict[str, str]:
 
         _reference_dict = {}
 
-        if os.path.exists(REFERENCE_FILE):
+        if REFERENCE_FILE.exists():
             try:
                 reference_df = pd.read_csv(REFERENCE_FILE, encoding='utf-8')
                 
@@ -194,7 +195,7 @@ def get_standardization_stats() -> Dict[str, Any]:
                 'loaded': False,
                 'count': 0,
                 'unique_standardizations': 0,
-                'file_exists': os.path.exists(REFERENCE_FILE)
+                'file_exists': REFERENCE_FILE.exists()
             }
         
         unique_standardizations = len(set(reference_dict.values()))
@@ -211,7 +212,7 @@ def get_standardization_stats() -> Dict[str, Any]:
             'loaded': False,
             'count': 0,
             'unique_standardizations': 0,
-            'file_exists': os.path.exists(REFERENCE_FILE),
+            'file_exists': REFERENCE_FILE.exists(),
             'error': str(e)
         }
 
@@ -258,7 +259,8 @@ def validate_reference_file(file_path: str = REFERENCE_FILE) -> Dict[str, Any]:
     
     try:
         # Check if file exists
-        validation_result['exists'] = os.path.exists(file_path)
+        file_path_obj = Path(file_path) if isinstance(file_path, str) else file_path
+        validation_result['exists'] = file_path_obj.exists()
         if not validation_result['exists']:
             validation_result['issues'].append(f"File does not exist: {file_path}")
             return validation_result
