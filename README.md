@@ -100,7 +100,7 @@ The output file will be `tagged_personas.csv`, containing:
 |------------------|----------------------------------------------|
 |`Record ID`       |Same as input                                 |
 |`Job Title`       |Standardized job title (if applicable)        |
-|`Persona Segment` |Assigned category (empty if confidence < 50%) |
+|`Persona Segment` |Assigned category ("Not Classified" if confidence < 50%) |
 |`Confidence Score`|Model confidence (0-100, all scores rounded to nearest 5)|
 
 Example `tagged_personas.csv` output:
@@ -265,7 +265,7 @@ The system applies a multi-layered classification approach in the following orde
 
 ### **Thresholds and Settings**
 
-- **Confidence Threshold**: 50% (predictions below this are left unassigned)
+- **Confidence Threshold**: 50% (predictions below this are marked as "Not Classified")
 - **Priority Enforcement**: Applied when model confidence < 70%
 - **Fuzzy Matching**: Available but disabled by default
 - **Max Title Length**: 500 characters (longer titles are truncated)

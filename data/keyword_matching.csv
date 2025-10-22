@@ -41,7 +41,7 @@ developer,contains,Engineering,marketing
 engineer,contains,Engineering,sales
 engineering,contains,Engineering,
 devops,contains,Engineering,
-CTO,equal,Engineering,
+CTO,equals,Engineering,
 Chief Technology Officer,contains,Engineering,
 R&D,contains,Engineering,
 Research & Development,contains,Engineering,

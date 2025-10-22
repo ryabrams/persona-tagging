@@ -192,7 +192,7 @@ def apply_keyword_matching(df, keyword_file):
         logger.warning(f"Invalid rule types found in keyword file: {invalid_rules}. Valid types are: {valid_rules}")
 
     # Prepare columns for keyword matches
-    df['Persona Segment'] = ""
+    df['Persona Segment'] = "Not Classified"
     df['Confidence Score'] = 0
 
     # Convert job titles to lowercase once for efficiency
@@ -222,15 +222,15 @@ def apply_keyword_matching(df, keyword_file):
             mask &= ~job_titles_lower.str.contains(exclude_kw, na=False, regex=False)
 
         # Apply segment only to unassigned rows
-        unassigned_mask = df['Persona Segment'] == ""
+        unassigned_mask = df['Persona Segment'] == "Not Classified"
         final_mask = mask & unassigned_mask
 
         df.loc[final_mask, 'Persona Segment'] = segment
         df.loc[final_mask, 'Confidence Score'] = 100
 
     # Split matched and unmatched
-    df_matched = df[df['Persona Segment'] != ""].copy()
-    df_unmatched = df[df['Persona Segment'] == ""].copy()
+    df_matched = df[df['Persona Segment'] != "Not Classified"].copy()
+    df_unmatched = df[df['Persona Segment'] == "Not Classified"].copy()
 
     return df_unmatched, df_matched
 
@@ -310,7 +310,7 @@ def make_ml_predictions(df_unmatched, model):
     # Clear low-confidence predictions
     low_conf_mask = df_unmatched['Confidence Score'] < CONFIDENCE_THRESHOLD
     n_low_confidence = low_conf_mask.sum()
-    df_unmatched.loc[low_conf_mask, 'Persona Segment'] = ""
+    df_unmatched.loc[low_conf_mask, 'Persona Segment'] = "Not Classified"
 
     logger.info(f"ML predictions completed: {n_low_confidence} low confidence predictions cleared")
     
@@ -332,8 +332,8 @@ def save_results(df_matched, df_unmatched):
 
     # Log summary statistics
     n_keyword_matched = len(df_matched)
-    n_ml_predicted = len(df_unmatched[df_unmatched['Persona Segment'] != ""])
-    n_unassigned = len(df_unmatched[df_unmatched['Persona Segment'] == ""])
+    n_ml_predicted = len(df_unmatched[df_unmatched['Persona Segment'] != "Not Classified"])
+    n_unassigned = len(df_unmatched[df_unmatched['Persona Segment'] == "Not Classified"])
     
     logger.info("Classification complete:")
     logger.info(f"  - Keyword matched: {n_keyword_matched}")

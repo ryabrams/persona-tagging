@@ -6,7 +6,11 @@
       "Bash(python:*)",
       "Bash(rm:*)",
       "mcp__ide__getDiagnostics",
-      "Bash(cd c:Usersryanagithub repospersona-tagging)"
+      "Bash(cd c:Usersryanagithub repospersona-tagging)",
+      "Bash(make train:*)",
+      "Bash(pip install:*)",
+      "Bash(C:UsersryanaAppDataLocalProgramsPythonPython314python.exe scripts/train_model.py)",
+      "Bash(C:/Users/ryana/AppData/Local/Programs/Python/Python314/python.exe:*)"
     ],
     "deny": []
   }
